@@ -75,6 +75,12 @@ class Bird(pg.sprite.Sprite):
         """
         self.state = state
         self.hyper_life = hyper_life
+    def tick_move(self):
+        """
+        重力
+        """
+        self.rect.move_ip(0, 3)
+
 
 
 
@@ -144,6 +150,8 @@ def main():
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: return
+            #if event.type == pg.KEYDOWN and event.key == pg.K_f:
+                #这里
 
         key_lst = pg.key.get_pressed()
 
@@ -151,6 +159,7 @@ def main():
         screen.blit(zimen, (0, HEIGHT-200))
 
         bird.update(key_lst, screen)
+        bird.tick_move()  # 重力
 
         pg.display.update()
         tmr += 1
