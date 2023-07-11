@@ -120,6 +120,21 @@ class Bird(pg.sprite.Sprite):
 
 
 #無敵
+class Star(pg.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.image = pg.transform.rotozoom(pg.image.load(f"ex05/fig/star.png"), 0, 0.1)
+        self.rect = self.image.get_rect()
+        self.rect.center = (1000, HEIGHT-225)
+
+    def change_img(self, num: int, screen: pg.Surface):
+        self.image = pg.transform.rotozoom(pg.image.load(f"ex05/fig/{num}.png"), 0, 2.0)
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        self.rect.center = (self.rect.centerx - 5,self.rect.centery)
+
 
 
 
@@ -136,6 +151,8 @@ def main():
     clock = pg.time.Clock()
     tmr = 0
     bird = Bird(3, (200, HEIGHT-225))
+    star = pg.sprite.Group()
+
 
 
     zimen = pg.Surface((800,200))
@@ -146,12 +163,18 @@ def main():
             if event.type == pg.QUIT: return
 
         key_lst = pg.key.get_pressed()
+        if tmr == 200:
+            star.add(Star())
 
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
-
+        for star0 in pg.sprite.spritecollide(bird, star, True):
+            bird.change_state("hyper",500)
         bird.update(key_lst, screen)
 
+
+        star.update()
+        star.draw(screen)
         pg.display.update()
         tmr += 1
         clock.tick(100)
