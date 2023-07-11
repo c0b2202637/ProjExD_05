@@ -77,9 +77,10 @@ class Bird(pg.sprite.Sprite):
         self.hyper_life = hyper_life
     def tick_move(self):
         """
-        重力
+        重力による落ちる
         """
-        self.rect.move_ip(0, 3)
+        self.rect.move_ip(0, 1)
+        
 
 
 
@@ -108,6 +109,10 @@ class Bird(pg.sprite.Sprite):
             self.image = pg.transform.laplacian(self.image)
         if self.hyper_life < 0:
             self.change_state("normal",-1)
+
+        if self.state != "fly":  # flyの状態でないなら、重力による落ちる
+            self.rect.move_ip(0,1)
+
         screen.blit(self.image, self.rect)
     
     def get_direction(self) -> tuple[int, int]:
@@ -141,17 +146,22 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     clock = pg.time.Clock()
     tmr = 0
-    bird = Bird(3, (200, HEIGHT-225))
+    bird = Bird(3, (200, HEIGHT-325))
 
 
     zimen = pg.Surface((800,200))
     pg.draw.rect(zimen,(0,0,0),(0,0,800,200))
 
     while True:
+        key_lst = pg.key.get_pressed()
+        
         for event in pg.event.get():
             if event.type == pg.QUIT: return
-            #if event.type == pg.KEYDOWN and event.key == pg.K_f:
-                #这里
+
+            if event.type == pg.KEYDOWN and event.key == pg.K_TAB:  # tabキーを押す時、birdの状態をflyになる
+                bird.change_state("fly",1)
+            else:
+                bird.change_state("normal",-1)
 
         key_lst = pg.key.get_pressed()
 
@@ -159,7 +169,6 @@ def main():
         screen.blit(zimen, (0, HEIGHT-200))
 
         bird.update(key_lst, screen)
-        bird.tick_move()  # 重力
 
         pg.display.update()
         tmr += 1
