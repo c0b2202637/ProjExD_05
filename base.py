@@ -10,18 +10,6 @@ from pygame.sprite import AbstractGroup
 WIDTH = 800
 HEIGHT = 600
 
-def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
-    """
-    オブジェクトが画面内か画面外かを判定し，真理値タプルを返す
-    引数 obj：オブジェクト（爆弾，こうかとん，ビーム）SurfaceのRect
-    戻り値：横方向，縦方向のはみ出し判定結果（画面内：True／画面外：False）
-    """
-    yoko, tate = True, True
-    if obj.left < 0 or WIDTH < obj.right:  # 横方向のはみ出し判定
-        yoko = False
-    if obj.top < 0 or HEIGHT-200 < obj.bottom:  # 縦方向のはみ出し判定
-        tate = False
-    return yoko, tate
 
 
 #基本機能
@@ -41,7 +29,7 @@ class Bird(pg.sprite.Sprite):
         引数2 xy：こうかとん画像の位置座標タプル
         """
         super().__init__()
-        img0 = pg.transform.rotozoom(pg.image.load(f"ex04/fig/{num}.png"), 0, 1.0)
+        img0 = pg.transform.rotozoom(pg.image.load(f"ex04/fig/{num}.png"), 0, 2.0)
         img = pg.transform.flip(img0, True, False)  # デフォルトのこうかとん
         self.imgs = {
             (+1, 0): img,  # 右
@@ -60,6 +48,8 @@ class Bird(pg.sprite.Sprite):
         self.speed = 10
         self.state = "normal"
         self.hyper_life = -1
+
+
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -106,7 +96,7 @@ class Bird(pg.sprite.Sprite):
     
     def get_direction(self) -> tuple[int, int]:
         return self.dire
-    
+
 
 #障害物
 
@@ -134,28 +124,22 @@ def main():
     pg.display.set_caption("走れこうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     clock = pg.time.Clock()
+    bird = Bird(3, (900, 400))
     tmr = 0
-    bird = Bird(3, (200, HEIGHT-225))
-
-
     zimen = pg.Surface((800,200))
     pg.draw.rect(zimen,(0,0,0),(0,0,800,200))
-
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: return
-
-        key_lst = pg.key.get_pressed()
-
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
 
-        bird.update(key_lst, screen)
+        key_lst = pg.key.get_pressed()
 
+        bird.update(key_lst, screen)
         pg.display.update()
         tmr += 1
-        clock.tick(100)
-
+        clock.tick(10)
 
 if __name__ == "__main__":
     pg.init()
