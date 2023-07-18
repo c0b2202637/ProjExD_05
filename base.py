@@ -296,21 +296,6 @@ def main():
         if tmr == 200:
             star.add(Star())
 
-        if enemy_timer >= 250:  # 5秒ごとに障害物を生成
-            enemies.add(Enemy())
-            enemy_timer = 0
-
-        # 障害物の更新
-        enemies.update()
-        for enemy in enemies:
-            screen.blit(enemy.image, enemy.rect)
-
-        # 障害物との衝突判定
-        if pg.sprite.spritecollide(bird, enemies, False):
-            return  # ゲーム終了
-
-        enemy_timer += 1
-
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
         for star0 in pg.sprite.spritecollide(bird, star, True):
