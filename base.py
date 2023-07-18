@@ -90,6 +90,39 @@ class Bird(pg.sprite.Sprite):
         """
         self.state = state
         self.hyper_life = hyper_life
+    def tick_move(self):
+        """
+        重力による落ちる
+        """
+        self.rect.move_ip(0, 1)
+        
+
+
+    def jump(self):
+        if self.is_jumping:  #  ジャンプをしたとき
+            if self.jump_count >= self.JUMP_HEIGHT:  #ジャンプの頂点に達した場合
+                if self.pause_timer >= self.PAUSE_DURATION:  #頂点で一時停止時間を終えた場合
+                    self.is_jumping = False  #ジャンプ終了
+                    self.jump_count = 0  #ジャンプの進行をリセット
+                    self.jump_timer = 0  #ジャンプ中のフレーム数をリセット
+                    self.pause_timer = 0  #頂点での一時停止中のフレーム数をリセット
+                    self.is_returning = True  #元の位置に戻るようにself.is_returningをTrueにする。
+                else:
+                    self.pause_timer += 1  #頂点での一時停止中の時間を計測
+            else:
+                self.rect.move_ip(0, -self.JUMP_SPEED)  #キャラクターを上に移動
+                self.jump_count += self.JUMP_SPEED  #上昇度を増加させる
+                self.jump_timer += 1  #ジャンプ中のフレーム数を増加
+        elif self.is_returning:  #self.is_returningがTrue
+            if self.rect.y < self.original_y:  #元の位置に達していない場合
+                self.rect.move_ip(0, self.JUMP_SPEED)  #下向きに移動
+            else:
+                self.rect.y = self.original_y  #元の位置に戻る
+                self.is_returning = False  #落下移動の終了
+        else:  #ジャンプ開始の処理
+            pressed_keys = pg.key.get_pressed()  #入力キーの入手
+            if pressed_keys[pg.K_SPACE] and self.jump_count == 0 and self.jump_timer == 0:  #ジャンプの開始条件
+                self.is_jumping = True  #ジャンプ開始
 
     def jump(self):
         if self.is_jumping:  #  ジャンプをしたとき
@@ -148,6 +181,10 @@ class Bird(pg.sprite.Sprite):
             self.image = pg.transform.laplacian(self.image)
         if self.hyper_life < 0:
             self.change_state("normal",-1)
+
+        if self.state != "fly":  # flyの状態でないなら、重力による落ちる
+            self.rect.move_ip(0,1)
+
         
         self.jump()
         
@@ -235,9 +272,17 @@ def main():
     pg.draw.rect(zimen,(0,0,0),(0,0,800,200))
     beams = pg.sprite.Group()
     while True:
+        key_lst = pg.key.get_pressed()
+        
         for event in pg.event.get():
             if event.type == pg.QUIT: return
 
+            if event.type == pg.KEYDOWN and event.key == pg.K_TAB:  # tabキーを押す時、birdの状態をflyになる
+                bird.change_state("fly",1)
+            else:
+                bird.change_state("normal",-1)
+
+        key_lst = pg.key.get_pressed()
         key_lst = pg.key.get_pressed()
         if tmr == 200:
             star.add(Star())
