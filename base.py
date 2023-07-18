@@ -305,6 +305,9 @@ def main():
         for enm in pg.sprite.spritecollide(bird, enemies, True):
             if bird.state != "hyper":
                 return
+        for beam in pg.sprite.groupcollide(beams, enemies, True,True):
+            pass
+
         key_lst = pg.key.get_pressed()
 
         bird.update(key_lst, screen)
