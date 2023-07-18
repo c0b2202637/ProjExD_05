@@ -63,6 +63,7 @@ class Bird(pg.sprite.Sprite):
         self.rect.center = xy
         self.speed = 10
         self.state = "normal"
+        self.state_2 = "normal"
         self.hyper_life = -1
         self.beam_mode = False
 
