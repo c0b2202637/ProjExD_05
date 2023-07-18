@@ -45,7 +45,7 @@ class Bird(pg.sprite.Sprite):
         引数2 xy：こうかとん画像の位置座標タプル
         """
         super().__init__()
-        img0 = pg.transform.rotozoom(pg.image.load(f"ex04/fig/{num}.png"), 0, 2.0)
+        img0 = pg.transform.rotozoom(pg.image.load(f"ex04/fig/{num}.png"), 0, 1.0)
         img = pg.transform.flip(img0, True, False)  # デフォルトのこうかとん
         self.imgs = {
             (+1, 0): img,  # 右
@@ -90,6 +90,14 @@ class Bird(pg.sprite.Sprite):
         """
         self.state = state
         self.hyper_life = hyper_life
+    def tick_move(self):
+        """
+        重力による落ちる
+        """
+        self.rect.move_ip(0, 1)
+    
+
+
 
     def jump(self):
         if self.is_jumping:  #  ジャンプをしたとき
@@ -116,6 +124,7 @@ class Bird(pg.sprite.Sprite):
             pressed_keys = pg.key.get_pressed()  #入力キーの入手
             if pressed_keys[pg.K_SPACE] and self.jump_count == 0 and self.jump_timer == 0:  #ジャンプの開始条件
                 self.is_jumping = True  #ジャンプ開始
+
 
     def change_beam_mode(self): #ビームを出せるかどうか決定
         if self.beam_mode == False:
@@ -148,6 +157,14 @@ class Bird(pg.sprite.Sprite):
             self.image = pg.transform.laplacian(self.image)
         if self.hyper_life < 0:
             self.change_state("normal",-1)
+
+        if self.state == "fly":  # flyの状態でないなら、重力による落ちる
+            for k, mv in __class__.delta.items():
+                if key_lst[k]:
+                    self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
+                    sum_mv[0] += mv[0]
+                    sum_mv[1] += mv[1]
+
         
         self.jump()
         
@@ -170,6 +187,21 @@ class Bird(pg.sprite.Sprite):
 
 
 #無敵
+class Star(pg.sprite.Sprite):
+
+    def __init__(self):
+        super().__init__()
+        self.image = pg.transform.rotozoom(pg.image.load(f"ex05/fig/star.png"), 0, 0.1)
+        self.rect = self.image.get_rect()
+        self.rect.center = (1000, HEIGHT-225)
+
+    def change_img(self, num: int, screen: pg.Surface):
+        self.image = pg.transform.rotozoom(pg.image.load(f"ex05/fig/{num}.png"), 0, 2.0)
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        self.rect.center = (self.rect.centerx - 5,self.rect.centery)
+
 
 
 
@@ -212,26 +244,45 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     clock = pg.time.Clock()
     bird = Bird(3, (200, HEIGHT-225))
+    star = pg.sprite.Group()
+
+    tmr = 0
     bird.change_beam_mode() #呼び出すたびに変更.これでTrue    tmr = 0
     zimen = pg.Surface((800,200))
     pg.draw.rect(zimen,(0,0,0),(0,0,800,200))
     beams = pg.sprite.Group()
     while True:
+        key_lst = pg.key.get_pressed()
+        
         for event in pg.event.get():
             if event.type == pg.QUIT: return
 
+            if event.type == pg.KEYDOWN and event.key == pg.K_TAB:  # tabキーを押す時、birdの状態をflyになる
+                bird.change_state("fly",1)
+            else:
+                bird.change_state("normal",-1)
             if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and len(beams)<1 and bird.beam_mode:
                 beams.add(Beam(bird))
+                
+        key_lst = pg.key.get_pressed()
+        key_lst = pg.key.get_pressed()
+        if tmr == 200:
+            star.add(Star())
 
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
-
+        for star0 in pg.sprite.spritecollide(bird, star, True):
+            bird.change_state("hyper",500)
         key_lst = pg.key.get_pressed()
 
         bird.update(key_lst, screen)
+
+        star.update()
+        star.draw(screen)
         beams.update()
         beams.draw(screen)
         pg.display.update()
+        tmr += 1
         clock.tick(50)
 
 if __name__ == "__main__":
