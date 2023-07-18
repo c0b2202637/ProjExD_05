@@ -45,7 +45,7 @@ class Bird(pg.sprite.Sprite):
         引数2 xy：こうかとん画像の位置座標タプル
         """
         super().__init__()
-        img0 = pg.transform.rotozoom(pg.image.load(f"ex04/fig/{num}.png"), 0, 2.0)
+        img0 = pg.transform.rotozoom(pg.image.load(f"ex04/fig/{num}.png"), 0, 1.0)
         img = pg.transform.flip(img0, True, False)  # デフォルトのこうかとん
         self.imgs = {
             (+1, 0): img,  # 右
@@ -95,34 +95,9 @@ class Bird(pg.sprite.Sprite):
         重力による落ちる
         """
         self.rect.move_ip(0, 1)
-        
+    
 
 
-    def jump(self):
-        if self.is_jumping:  #  ジャンプをしたとき
-            if self.jump_count >= self.JUMP_HEIGHT:  #ジャンプの頂点に達した場合
-                if self.pause_timer >= self.PAUSE_DURATION:  #頂点で一時停止時間を終えた場合
-                    self.is_jumping = False  #ジャンプ終了
-                    self.jump_count = 0  #ジャンプの進行をリセット
-                    self.jump_timer = 0  #ジャンプ中のフレーム数をリセット
-                    self.pause_timer = 0  #頂点での一時停止中のフレーム数をリセット
-                    self.is_returning = True  #元の位置に戻るようにself.is_returningをTrueにする。
-                else:
-                    self.pause_timer += 1  #頂点での一時停止中の時間を計測
-            else:
-                self.rect.move_ip(0, -self.JUMP_SPEED)  #キャラクターを上に移動
-                self.jump_count += self.JUMP_SPEED  #上昇度を増加させる
-                self.jump_timer += 1  #ジャンプ中のフレーム数を増加
-        elif self.is_returning:  #self.is_returningがTrue
-            if self.rect.y < self.original_y:  #元の位置に達していない場合
-                self.rect.move_ip(0, self.JUMP_SPEED)  #下向きに移動
-            else:
-                self.rect.y = self.original_y  #元の位置に戻る
-                self.is_returning = False  #落下移動の終了
-        else:  #ジャンプ開始の処理
-            pressed_keys = pg.key.get_pressed()  #入力キーの入手
-            if pressed_keys[pg.K_SPACE] and self.jump_count == 0 and self.jump_timer == 0:  #ジャンプの開始条件
-                self.is_jumping = True  #ジャンプ開始
 
     def jump(self):
         if self.is_jumping:  #  ジャンプをしたとき
@@ -149,6 +124,7 @@ class Bird(pg.sprite.Sprite):
             pressed_keys = pg.key.get_pressed()  #入力キーの入手
             if pressed_keys[pg.K_SPACE] and self.jump_count == 0 and self.jump_timer == 0:  #ジャンプの開始条件
                 self.is_jumping = True  #ジャンプ開始
+
 
     def change_beam_mode(self): #ビームを出せるかどうか決定
         if self.beam_mode == False:
@@ -164,11 +140,11 @@ class Bird(pg.sprite.Sprite):
         """
 
         sum_mv = [0, 0]
-        for k, mv in __class__.delta.items():
-            if key_lst[k]:
-                self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
-                sum_mv[0] += mv[0]
-                sum_mv[1] += mv[1]
+        # for k, mv in __class__.delta.items():
+        #     if key_lst[k]:
+        #         self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
+        #         sum_mv[0] += mv[0]
+        #         sum_mv[1] += mv[1]
         if check_bound(self.rect) != (True, True):
             for k, mv in __class__.delta.items():
                 if key_lst[k]:
@@ -182,8 +158,12 @@ class Bird(pg.sprite.Sprite):
         if self.hyper_life < 0:
             self.change_state("normal",-1)
 
-        if self.state != "fly":  # flyの状態でないなら、重力による落ちる
-            self.rect.move_ip(0,1)
+        if self.state == "fly":  # flyの状態でないなら、重力による落ちる
+            for k, mv in __class__.delta.items():
+                if key_lst[k]:
+                    self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
+                    sum_mv[0] += mv[0]
+                    sum_mv[1] += mv[1]
 
         
         self.jump()
@@ -281,13 +261,13 @@ def main():
                 bird.change_state("fly",1)
             else:
                 bird.change_state("normal",-1)
-
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and len(beams)<1 and bird.beam_mode:
+                beams.add(Beam(bird))
+                
         key_lst = pg.key.get_pressed()
         key_lst = pg.key.get_pressed()
         if tmr == 200:
             star.add(Star())
-            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and len(beams)<1 and bird.beam_mode:
-                beams.add(Beam(bird))
 
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
@@ -302,6 +282,7 @@ def main():
         beams.update()
         beams.draw(screen)
         pg.display.update()
+        tmr += 1
         clock.tick(50)
 
 if __name__ == "__main__":
