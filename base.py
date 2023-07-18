@@ -184,6 +184,19 @@ class Bird(pg.sprite.Sprite):
 
 
 #障害物
+class Enemy(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pg.Surface((200, random.randint(200, 400)))
+        self.image.fill((0, 0, 0))
+        self.rect = self.image.get_rect()
+        self.rect.x = WIDTH
+        self.rect.y = HEIGHT - self.image.get_height()
+
+    def update(self):
+        self.rect.x -= 5  # 障害物を左に移動
+        if self.rect.right < 0:  # 画面外に出たら削除
+            self.kill()
 
 
 
@@ -260,6 +273,12 @@ def main():
     zimen = pg.Surface((800,200))
     pg.draw.rect(zimen,(0,0,0),(0,0,800,200))
     beams = pg.sprite.Group()
+
+    enemies = pg.sprite.Group()  # 障害物のグループ
+
+    enemy_timer = 0
+
+
     while True:
         key_lst = pg.key.get_pressed()
         
@@ -276,6 +295,21 @@ def main():
         key_lst = pg.key.get_pressed()
         if tmr == 200:
             star.add(Star())
+
+        if enemy_timer >= 250:  # 5秒ごとに障害物を生成
+            enemies.add(Enemy())
+            enemy_timer = 0
+
+        # 障害物の更新
+        enemies.update()
+        for enemy in enemies:
+            screen.blit(enemy.image, enemy.rect)
+
+        # 障害物との衝突判定
+        if pg.sprite.spritecollide(bird, enemies, False):
+            return  # ゲーム終了
+
+        enemy_timer += 1
 
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
