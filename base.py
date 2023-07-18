@@ -99,6 +99,22 @@ class Bird(pg.sprite.Sprite):
 
 
 #障害物
+class Obstacle(pg.sprite.Sprite):
+    """
+    障害物に関するクラス
+    """
+    def __init__(self, pos: tuple[int, int]):
+        super().__init__()
+        self.image = pg.Surface((200, 200))
+        self.image.fill((255, 0, 0))  # 赤い四角形を描画
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+
+    def update(self):
+        self.rect.move_ip(-5, 0)  # 右から左へ移動
+        if self.rect.right < 0:  # 画面外に出たら削除
+            self.kill()
+
 
 
 
