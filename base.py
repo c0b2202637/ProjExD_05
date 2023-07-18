@@ -164,8 +164,10 @@ class Bird(pg.sprite.Sprite):
         if self.state == "hyper":
             self.hyper_life -= 1
             self.image = pg.transform.laplacian(self.image)
-        if self.hyper_life < 0:
-            self.change_state("normal",-1)
+
+            if self.hyper_life < 0:
+                self.change_state("normal",-1)
+                self.image = self.imgs[self.dire]
   
         for k, mv in __class__.delta.items():
             if key_lst[k]:
@@ -291,10 +293,10 @@ def main():
                 
         key_lst = pg.key.get_pressed()
         
-        if tmr %75 ==1:
+        if tmr %random.randint(13,300) ==1:
             enemies.add(Enemy())
 
-        if tmr%400 == 1:
+        if tmr%random.randint(100,2000) == 1:
             star.add(Star())
 
         screen.fill((255, 255, 255))
