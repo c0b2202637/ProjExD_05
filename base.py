@@ -185,19 +185,16 @@ class Bird(pg.sprite.Sprite):
 
 #障害物
 class Enemy(pg.sprite.Sprite):
+
     def __init__(self):
         super().__init__()
-        self.image = pg.Surface((200, random.randint(200, 400)))
-        self.image.fill((0, 0, 0))
+        self.image = pg.transform.rotozoom(pg.image.load(f"ex05/fig/bomb.png"), 0, 0.1 )
         self.rect = self.image.get_rect()
-        self.rect.x = WIDTH
-        self.rect.y = HEIGHT - self.image.get_height()
+        self.rect.center = (1000, HEIGHT-225)
+
 
     def update(self):
-        self.rect.x -= 5  # 障害物を左に移動
-        if self.rect.right < 0:  # 画面外に出たら削除
-            self.kill()
-
+        self.rect.center = (self.rect.centerx - 10,self.rect.centery)
 
 
 
@@ -267,6 +264,7 @@ def main():
     clock = pg.time.Clock()
     bird = Bird(3, (200, HEIGHT-225))
     star = pg.sprite.Group()
+    enemies = pg.sprite.Group()
 
     tmr = 0
     bird.change_beam_mode() #呼び出すたびに変更.これでTrue    tmr = 0
@@ -292,14 +290,21 @@ def main():
                 beams.add(Beam(bird))
                 
         key_lst = pg.key.get_pressed()
-        key_lst = pg.key.get_pressed()
-        if tmr == 200:
+        
+        if tmr %75 ==1:
+            enemies.add(Enemy())
+
+        if tmr%400 == 1:
             star.add(Star())
 
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
         for star0 in pg.sprite.spritecollide(bird, star, True):
             bird.change_state("hyper",500)
+        
+        for enm in pg.sprite.spritecollide(bird, enemies, True):
+            if bird.state != "hyper":
+                return
         key_lst = pg.key.get_pressed()
 
         bird.update(key_lst, screen)
@@ -308,6 +313,8 @@ def main():
         star.draw(screen)
         beams.update()
         beams.draw(screen)
+        enemies.update()
+        enemies.draw(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
