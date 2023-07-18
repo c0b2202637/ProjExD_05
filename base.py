@@ -64,6 +64,7 @@ class Bird(pg.sprite.Sprite):
         self.speed = 10
         self.state = "normal"
         self.hyper_life = -1
+        self.beam_mode = False
 
         self.is_jumping = False  #ジャンプ中かどうか。ジャンプ中はTrue、それ以外はFalse。
         self.jump_count = 0  #ジャンプの進行している長さ
@@ -116,7 +117,11 @@ class Bird(pg.sprite.Sprite):
             if pressed_keys[pg.K_SPACE] and self.jump_count == 0 and self.jump_timer == 0:  #ジャンプの開始条件
                 self.is_jumping = True  #ジャンプ開始
 
-
+    def change_beam_mode(self): #ビームを出せるかどうか決定
+        if self.beam_mode == False:
+            self.beam_mode = True
+        else:
+            self.beam_mode = False
 
     def update(self, key_lst: list[bool], screen: pg.Surface):
         """
@@ -169,7 +174,34 @@ class Bird(pg.sprite.Sprite):
 
 
 #障害物破壊
+class Beam(pg.sprite.Sprite):
+    """
+    ビームに関するクラス
+    """
+    def __init__(self, bird: Bird):
+        """
+        ビーム画像Surfaceを生成する
+        引数 bird：ビームを放つこうかとん
+        """
+        super().__init__()
+        self.vx, self.vy = bird.get_direction()
+        angle = math.degrees(math.atan2(0, self.vx)) #横に固定する
+        self.image = pg.transform.rotozoom(pg.image.load(f"ex04/fig/beam.png"), angle, 2.0)
+        self.vx = math.cos(math.radians(angle))
+        self.vy = -math.sin(math.radians(angle))
+        self.rect = self.image.get_rect()
+        self.rect.centery = bird.rect.centery+bird.rect.height*self.vy
+        self.rect.centerx = bird.rect.centerx+bird.rect.width*self.vx
+        self.speed = 5
 
+    def update(self):
+        """
+        ビームを速度ベクトルself.vx, self.vyに基づき移動させる
+        引数 screen：画面Surface
+        """
+        self.rect.move_ip(+self.speed*self.vx, +self.speed*self.vy)
+        if check_bound(self.rect) != (True, True):
+            self.kill()
 
 #地形生成
 
@@ -180,18 +212,25 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))    
     clock = pg.time.Clock()
     bird = Bird(3, (200, HEIGHT-225))
-    tmr = 0
+    bird.change_beam_mode() #呼び出すたびに変更.これでTrue    tmr = 0
     zimen = pg.Surface((800,200))
     pg.draw.rect(zimen,(0,0,0),(0,0,800,200))
+    beams = pg.sprite.Group()
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT: return
+
+            if event.type == pg.KEYDOWN and event.key == pg.K_RETURN and len(beams)<1 and bird.beam_mode:
+                beams.add(Beam(bird))
+
         screen.fill((255, 255, 255))
         screen.blit(zimen, (0, HEIGHT-200))
 
         key_lst = pg.key.get_pressed()
 
         bird.update(key_lst, screen)
+        beams.update()
+        beams.draw(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
